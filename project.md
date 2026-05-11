@@ -231,11 +231,16 @@ final-build-gpt2/
 
 ## 주요 일정
 
-| 날짜 | 항목 |
-|------|------|
-| 6월 10일 오후 3시 | 발표 파일 제출 (Cyber Campus) |
-| 6월 10일 or 15일 | Final Presentation (10분) |
-| 6월 24일 23:59 | Report + 코드 최종 제출 (Cyber Campus) |
+| 기간 | 할 일 | 구분 |
+|------|-------|------|
+| 지금 ~ 5/25 | Step 1 구현 (attention, gpt2_layer, embed, optimizer, classifier 구현 및 sanity check 통과) | Step 1 |
+| 5/25 ~ 6/1 | Step 1 마무리 + Step 2 방향 확정 (Sentiment Analysis 학습 완료, dev accuracy 기준치 달성, Research Question 확정) | 전환 |
+| 6/1 ~ 6/8 | Step 2 실험 (Paraphrase Detection / Sonnet Generation 실험, dev leaderboard 제출) | Step 2 |
+| 6/8 ~ 6/10 | 발표 준비 + test leaderboard 제출 (Test 제출 최대 3회 — 신중하게 사용) | 마감 |
+| **6/10 오후 3시** | **발표 파일 제출 — Cyber Campus** | 마감 |
+| 6/10 or 15 | Final Presentation (10분 발표) | 발표 |
+| 6/10 ~ 6/24 | Report 작성 (6페이지 이내, 한국어/영어 모두 가능) | Step 2 |
+| **6/24 23:59** | **Report + 코드 최종 제출 — Cyber Campus** | 마감 |
 
 ---
 
