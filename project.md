@@ -188,23 +188,43 @@ exp: add LoRA fine-tuning for paraphrase detection
 
 ## 디렉토리 구조
 
+> ✏️ 표시된 파일은 코드 구현이 필요한 파일입니다.
+
 ```
 final-build-gpt2/
 ├── models/
 │   ├── base_gpt.py
-│   └── gpt2.py
+│   └── gpt2.py                ✏️ embed() 구현 (Token + Positional Embedding)
 ├── modules/
-│   ├── attention.py
-│   └── gpt2_layer.py
-├── data/                  # 데이터셋
-├── predictions/           # 모델 예측 결과
-├── step2/                 # Step 2 실험 코드
-│   └── ...
-├── classifier.py
-├── optimizer.py
-├── sanity_check.py
-├── optimizer_test.py
-└── README.md
+│   ├── attention.py           ✏️ CausalSelfAttention.attention() 구현 (Masked Multi-Head Attention)
+│   └── gpt2_layer.py          ✏️ GPT2Layer.add(), forward() 구현
+├── data/                      # 데이터셋
+│   ├── ids-sst-{train,dev,test-student}.csv
+│   ├── ids-cfimdb-{train,dev,test-student}.csv
+│   ├── quora-{train,dev,test-student}.csv
+│   ├── sonnets.txt
+│   ├── sonnets_held_out.txt
+│   ├── sonnets_held_out_dev.txt
+│   └── TRUE_sonnets_held_out_dev.txt
+├── predictions/               # 모델 예측 결과 (자동 생성)
+│   └── README
+├── classifier.py              ✏️ GPT2SentimentClassifier 구현
+├── paraphrase_detection.py
+├── sonnet_generation.py
+├── optimizer.py               ✏️ AdamW.step() 구현
+├── optimizer_test.py          # Optimizer 검증 스크립트
+├── optimizer_test.npy         # Optimizer 검증용 데이터
+├── sanity_check.py            # GPT-2 구현 검증 스크립트
+├── datasets.py                # 데이터셋 로딩 유틸리티
+├── evaluation.py              # 평가 유틸리티
+├── config.py                  # 모델 설정
+├── utils.py                   # 유틸리티 함수
+├── prepare_submit.py          # 제출 파일 생성 스크립트
+├── setup.sh                   # 환경 세팅 스크립트
+├── env.yml                    # conda 환경 파일
+├── LICENSE
+├── README.md                  # 스타터 코드 원본 README
+└── PROJECT.md                 # 팀 프로젝트 문서 (이 파일)
 ```
 
 ---
