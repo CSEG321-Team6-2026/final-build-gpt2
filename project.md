@@ -86,33 +86,46 @@ Step 1에서 구현한 세 가지 태스크를 기반으로 실험합니다.
 
 ## 시작하기
 
-### 1. 스타터 코드 가져오기
+팀 리포지토리(`final-build-gpt2`)에는 이미 스타터 코드가 push되어 있습니다.  
+스타터 코드(과제 깃허브) 클론 여부에 따라 아래 중 해당하는 방법을 따라주세요.
+
+### Case 1 — 스타터 코드를 아직 클론하지 않은 경우
+
+팀 리포지토리를 바로 클론합니다.
 
 ```bash
-git clone https://github.com/cfifty/public_cs224n_gpt
+git clone https://github.com/YOUR_ORG/final-build-gpt2.git
+cd final-build-gpt2
+```
+
+### Case 2 — 스타터 코드를 이미 클론한 경우
+
+기존에 클론한 디렉토리의 remote를 팀 리포지토리로 교체합니다.
+
+```bash
 cd public_cs224n_gpt
 git remote remove origin
 git remote add origin https://github.com/YOUR_ORG/final-build-gpt2.git
 git pull origin main --allow-unrelated-histories
-git push -u origin main
 ```
 
-### 2. 환경 세팅
+---
+
+### 환경 세팅
 
 ```bash
-cd public_cs224n_gpt
 source setup.sh          # conda 환경 cs224n_dfp 생성
 conda activate cs224n_dfp
 ```
 
-### 3. 구현 검증
+### 구현 검증
 
 ```bash
 python3 sanity_check.py      # GPT-2 구현 검증
 python3 optimizer_test.py    # Adam Optimizer 검증
 ```
 
-### 4. Sentiment Analysis 학습
+### Sentiment Analysis 학습
 
 ```bash
 # Last-linear-layer 모드
