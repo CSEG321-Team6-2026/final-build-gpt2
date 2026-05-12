@@ -29,7 +29,7 @@ dev           ← 통합 브랜치
 
 작업 흐름:
 1. 작업 전 GitHub에 Issue 작성
-2. Issue 번호로 브랜치 생성: `git checkout -b issue_{번호}`
+2. 개인 작업별 브랜치 생성: `git checkout -b {issue_number}/{description}`
 3. 작업 후 `dev`에 Pull Request
 4. PR 후 단톡에 공유
 5. 팀원 1명 이상 리뷰 후 merge
