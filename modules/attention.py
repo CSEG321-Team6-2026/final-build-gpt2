@@ -1,7 +1,9 @@
 import torch
+import math
 
 from einops import rearrange
 from torch import nn
+
 
 
 class CausalSelfAttention(nn.Module):
@@ -34,7 +36,31 @@ class CausalSelfAttention(nn.Module):
   def attention(self, key, query, value, attention_mask):
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # dot product b/w query & key
+    scores=torch.matmul(query, key.transpose(-1,-2))
+    # scaling by sqrt(d_k)
+    scores=scores/math.sqrt(self.attention_head_size)
+
+    # apply attention mask
+    seq_len=scores.size(-1)
+    mask=torch.tril(torch.ones((seq_len,seq_len),device=scores.device)).view(1,1,seq_len,seq_len)
+    scores=scores.masked_fill(mask==0,float('-inf'))
+
+    if attention_mask is not None:
+      scores=scores+attention_mask
+
+    # softmax
+    probs=torch.softmax(scores,dim=-1)
+    # dropout
+    probs=self.dropout(probs)
+
+    # weighted sum with value
+    out=torch.matmul(probs,value)
+
+    # merge multiheads
+    out= rearrange(out,'b h t d -> b t (h d)')
+    return out
+  
 
 
   def forward(self, hidden_states, attention_mask):
