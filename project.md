@@ -132,56 +132,83 @@ Step 1에서 구현한 세 가지 태스크를 기반으로 실험합니다.
 
 ---
 
-## 시작하기
+## 제출 체크리스트
 
-팀 리포지토리(`final-build-gpt2`)에는 이미 스타터 코드가 push되어 있습니다.  
-스타터 코드(과제 깃허브) 클론 여부에 따라 아래 중 해당하는 방법을 따라주세요.
+### 📦 Step 1 제출 — Gradescope `Default Final Project [Base]`
 
-### Case 1 — 스타터 코드를 아직 클론하지 않은 경우
-
-팀 리포지토리를 바로 클론합니다.
+`classifier.py`를 두 모드로 모두 실행한 뒤, `prepare_submit.py`로 zip을 생성해 업로드합니다.
 
 ```bash
-git clone https://github.com/YOUR_ORG/final-build-gpt2.git
-cd final-build-gpt2
+# 1. last-linear-layer 모드 학습 (Colab, GPU)
+python3 classifier.py --fine-tune-mode last-linear-layer \
+    --batch_size 64 --lr 1e-3 --epochs 10 --use_gpu
+
+# 2. full-model 모드 학습 (Colab, GPU)
+python3 classifier.py --fine-tune-mode full-model \
+    --batch_size 8 --lr 1e-5 --epochs 10 --use_gpu
+
+# 3. 제출 파일 생성
+python3 prepare_submit.py
+# → cs224n_default_final_project_submission.zip 생성됨
 ```
 
-### Case 2 — 스타터 코드를 이미 클론한 경우
+제출 전 아래 파일이 모두 존재하는지 확인할 것:
 
-기존에 클론한 디렉토리의 remote를 팀 리포지토리로 교체합니다.
-
-```bash
-cd public_cs224n_gpt
-git remote remove origin
-git remote add origin https://github.com/YOUR_ORG/final-build-gpt2.git
-git pull origin main --allow-unrelated-histories
+```
+modules/attention.py
+modules/gpt2_layer.py
+models/base_gpt.py
+models/gpt2.py
+classifier.py
+optimizer.py
+predictions/last-linear-layer-sst-dev-out.csv
+predictions/last-linear-layer-sst-test-out.csv
+predictions/full-model-sst-dev-out.csv
+predictions/full-model-sst-test-out.csv
+predictions/last-linear-layer-cfimdb-dev-out.csv
+predictions/last-linear-layer-cfimdb-test-out.csv
+predictions/full-model-cfimdb-dev-out.csv
+predictions/full-model-cfimdb-test-out.csv
 ```
 
----
+**목표 성능 (dev 기준)**
 
-### 환경 세팅
+| 모드 | SST | CFIMDB |
+|------|-----|--------|
+| last-linear-layer | ≥ 0.462 | ≥ 0.861 |
+| full-model | ≥ 0.513 | ≥ 0.976 |
 
-```bash
-source setup.sh          # conda 환경 cs224n_dfp 생성
-conda activate cs224n_dfp
-```
 
-### 구현 검증
+### 🏆 Step 2 Leaderboard 제출 — Gradescope
 
-```bash
-python3 sanity_check.py      # GPT-2 구현 검증
-python3 optimizer_test.py    # Adam Optimizer 검증
-```
+`prepare_submit.py` 실행 후 동일한 zip 파일을 각 leaderboard에 업로드합니다.
 
-### Sentiment Analysis 학습
+| 태스크 | Dev | Test | 제출 횟수 제한 |
+|--------|-----|------|--------------|
+| Paraphrase Detection | Default Final Project [Paraphrase Dev] | Default Final Project [Paraphrase Test] | Test **최대 3회** |
+| Sonnet Generation | Default Final Project [Sonnet Dev] | Default Final Project [Sonnet Test] | Test **최대 3회** |
 
-```bash
-# Last-linear-layer 모드
-python3 classifier.py --fine-tune-mode last-linear-layer --batch_size 8 --lr 1e-5 --epochs 5
+> ⚠️ Test 제출은 신중하게. 최종 성적은 가장 좋은 제출 기준 (가장 최근 X).
 
-# Full fine-tuning 모드
-python3 classifier.py --fine-tune-mode full-model --batch_size 8 --lr 1e-5 --epochs 5
-```
+
+### 📝 최종 제출 — Cyber Campus (`6/24 23:59`)
+
+| 항목 | 내용 |
+|------|------|
+| 코드 | `cs224n_default_final_project_submission.zip` |
+| 보고서 | PDF, **참고문헌 제외 최대 6페이지**, 한국어/영어 모두 가능 |
+
+**보고서에 포함할 내용**
+
+- Step 1: GPT-2 구현 설명, Sentiment Analysis 실험 결과 (last-linear-layer vs full-model 비교)
+- Step 2: Research Question, 가설, 실험 설계, 결과, 분석 (결과가 나빠도 왜 안 됐는지 분석이 중요)
+
+
+### 🗓️ 발표 — Cyber Campus (`6/10 오후 3시` 파일 제출)
+
+- 발표 시간: 10분
+- 발표일: 6/10 또는 6/15 (미정)
+- PPT 파일을 Cyber Campus에 제출
 
 ---
 
@@ -194,58 +221,14 @@ python3 classifier.py --fine-tune-mode full-model --batch_size 8 --lr 1e-5 --epo
 
 ---
 
-## 디렉토리 구조
-
-> ✏️ 표시된 파일은 코드 구현이 필요한 파일입니다.
-
-```
-final-build-gpt2/
-├── models/
-│   ├── base_gpt.py
-│   └── gpt2.py                ✏️ embed() 구현 (Token + Positional Embedding)
-├── modules/
-│   ├── attention.py           ✏️ CausalSelfAttention.attention() 구현 (Masked Multi-Head Attention)
-│   └── gpt2_layer.py          ✏️ GPT2Layer.add(), forward() 구현
-├── data/                      # 데이터셋
-│   ├── ids-sst-{train,dev,test-student}.csv
-│   ├── ids-cfimdb-{train,dev,test-student}.csv
-│   ├── quora-{train,dev,test-student}.csv
-│   ├── sonnets.txt
-│   ├── sonnets_held_out.txt
-│   ├── sonnets_held_out_dev.txt
-│   └── TRUE_sonnets_held_out_dev.txt
-├── predictions/               # 모델 예측 결과 (자동 생성)
-│   └── README
-├── classifier.py              ✏️ GPT2SentimentClassifier 구현
-├── paraphrase_detection.py
-├── sonnet_generation.py
-├── optimizer.py               ✏️ AdamW.step() 구현
-├── optimizer_test.py          # Optimizer 검증 스크립트
-├── optimizer_test.npy         # Optimizer 검증용 데이터
-├── sanity_check.py            # GPT-2 구현 검증 스크립트
-├── datasets.py                # 데이터셋 로딩 유틸리티
-├── evaluation.py              # 평가 유틸리티
-├── config.py                  # 모델 설정
-├── utils.py                   # 유틸리티 함수
-├── prepare_submit.py          # 제출 파일 생성 스크립트
-├── setup.sh                   # 환경 세팅 스크립트
-├── env.yml                    # conda 환경 파일
-├── LICENSE
-├── README.md                  # 스타터 코드 원본 README
-└── PROJECT.md                 # 팀 프로젝트 문서 (이 파일)
-```
-
----
-
 ## 주요 일정
 
 | 날짜 | 할 일 | 담당 |
 |------|-------|------|
 | ~ 5/13 | `attention()` 구현 완료 | 팀원 1 |
 | ~ 5/16 | `add()`, `forward()`, `embed()`, `hidden_state_to_token()` 구현 완료 | 팀원 2 |
-| 5/21 ~ | Step 2 시작 | 팀원 1, 2 |
-| ~ 5/24 | `AdamW.step()`, `GPT2SentimentClassifier.__init__()`, `forward()` 구현 완료 | 팀원 3 |
-| 5/25 ~ | Step 2 시작 | 팀원 3 |
+| ~ 5/17 | `AdamW.step()`, `GPT2SentimentClassifier.__init__()`, `forward()` 구현 완료 및 `classifier.py` 학습 | 팀원 3 |
+| 5/21 ~ | Step 2 시작 | 전체 |
 | 5/26 | Step 2 구현/실험 시작 | 전체 |
 | 5/29 ~ 6/1 | Step 2 실험 계속 (팀원 1 일정 바쁨) | 팀원 2, 3 |
 | ~ 6/6 | Step 2 마무리 | 전체 |
@@ -254,9 +237,3 @@ final-build-gpt2/
 | 6/10 or 15 | Final Presentation (10분 발표) | 전체 |
 | **6/24 23:59** | **Report + 코드 최종 제출 — Cyber Campus** | 전체 |
 
----
-
-## LLM 사용 기록
-
-이 수업은 LLM 사용을 허용하나, 사용 내역을 반드시 문서화해야 합니다.  
-각자 사용한 LLM 도구, 질문 내용, 활용 방식, 수정 사항을 기록해주세요.
