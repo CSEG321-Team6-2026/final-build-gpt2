@@ -286,12 +286,12 @@ def avg_score(scored: list) -> float:
     return sum(s for _, s in scored) / len(scored)
 
 
-def _check_count(name: str, scored: list):
+def _check_count(name: str, scored: list, min_count: int = MIN_COUNT):
     count = len(scored)
     if count == 0:
         status = "EMPTY — 항목을 채워주세요"
-    elif count < MIN_COUNT:
-        status = f"WARN  (현재 {count}개, 최소 {MIN_COUNT}개 필요)"
+    elif count < min_count:
+        status = f"WARN  (현재 {count}개, 최소 {min_count}개 필요)"
     elif count < RECOMMEND_COUNT:
         status = f"OK    (현재 {count}개, 권장 {RECOMMEND_COUNT}개)"
     else:
@@ -359,7 +359,7 @@ def verify():
     _check_count("authority_neg", scored_auth_neg)
     _check_count("general_pos",   scored_gen_pos)
     _check_count("general_neg",   scored_gen_neg)
-    _check_count("neutral",       scored_neutral)
+    _check_count("neutral", scored_neutral, min_count=15)
 
     # 2. 쌍 내 평균 차이 검증
     _check_pair("general_pos", scored_gen_pos, "authority_pos", scored_auth_pos)
