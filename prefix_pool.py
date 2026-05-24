@@ -240,11 +240,21 @@ general_neg = [
 # =============================================================================
 
 neutral = [
-    # "The film was released in autumn.",
-    # "The running time is about two hours.",
-    # "The screening started at seven o'clock.",
-    # "The theater was located downtown.",
-    # "The cast includes several actors.",
+    "The film was released in autumn.",
+    "The running time is about two hours.",
+    "The screening started at seven o'clock.",
+    "The theater was located downtown.",
+    "The cast includes several actors.",
+    "The movie was filmed last year.",
+    "The director has made films before.",
+    "The studio released it last month.",
+    "The film was shown in several theaters.",
+    "The production took place in spring.",
+    "The cast was announced last spring.",
+    "The screening began on time.",
+    "The ticket price was standard.",
+    "The seats in the theater were assigned.",
+    "The film opened in select theaters.",
 ]
 
 # =============================================================================
