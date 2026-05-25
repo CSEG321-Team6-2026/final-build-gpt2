@@ -94,7 +94,13 @@ class SentimentDataset(Dataset):
     labels = [x[1] for x in data]
     sent_ids = [x[2] for x in data]
 
-    encoding = self.tokenizer(sents, return_tensors='pt', padding=True, truncation=True)
+    encoding = self.tokenizer(
+        sents, 
+        return_tensors='pt', 
+        padding=True, 
+        truncation=True,
+        max_length=512
+    )
     token_ids = torch.LongTensor(encoding['input_ids'])
     attention_mask = torch.LongTensor(encoding['attention_mask'])
     labels = torch.LongTensor(labels)
