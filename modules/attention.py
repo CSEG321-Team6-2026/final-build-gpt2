@@ -1,7 +1,9 @@
 import torch
+import math
 
 from einops import rearrange
 from torch import nn
+
 
 
 class CausalSelfAttention(nn.Module):
@@ -31,17 +33,49 @@ class CausalSelfAttention(nn.Module):
     proj = rearrange(proj, 'b t h d -> b h t d')
     return proj
 
-  def attention(self, key, query, value, attention_mask):
+  def attention(self, key, query, value, attention_mask, return_attn_probs=False):
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # dot product b/w query & key
+    scores=torch.matmul(query, key.transpose(-1,-2))
+    # scaling by sqrt(d_k)
+    scores=scores/math.sqrt(self.attention_head_size)
+
+    # apply attention mask
+    seq_len=scores.size(-1)
+    mask=torch.tril(torch.ones((seq_len,seq_len),device=scores.device)).view(1,1,seq_len,seq_len)
+    scores=scores.masked_fill(mask==0,float('-inf'))
+
+    if attention_mask is not None:
+      scores=scores+attention_mask
+
+    # softmax
+    probs=torch.softmax(scores,dim=-1)
+    # save un-dropped probs for visualization (returned if requested)
+    attn_probs_for_return = probs
+    # dropout
+    probs=self.dropout(probs)
+
+    # weighted sum with value
+    out=torch.matmul(probs,value)
+
+    # merge multiheads
+    out= rearrange(out,'b h t d -> b t (h d)')
+
+    if return_attn_probs:
+      return out, attn_probs_for_return
+    return out
+  
 
 
-  def forward(self, hidden_states, attention_mask):
+  def forward(self, hidden_states, attention_mask, return_attn_probs=False):
     """
     hidden_states: [bs, seq_len, hidden_state]
     attention_mask: [bs, 1, 1, seq_len]
     output: [bs, seq_len, hidden_state]
+
+    If return_attn_probs=True, additionally returns attention probabilities
+    of shape [bs, num_attention_heads, seq_len, seq_len].
     """
     # First, we have to generate the key, value, query for each token for multi-head attention
     # using self.transform (more details inside the function).
@@ -49,7 +83,13 @@ class CausalSelfAttention(nn.Module):
     key_layer = self.transform(hidden_states, self.key)
     value_layer = self.transform(hidden_states, self.value)
     query_layer = self.transform(hidden_states, self.query)
-    
+
     # Calculate the multi-head attention.
-    attn_value = self.attention(key_layer, query_layer, value_layer, attention_mask)
-    return attn_value
+    if return_attn_probs:
+      attn_value, attn_probs = self.attention(
+          key_layer, query_layer, value_layer, attention_mask, return_attn_probs=True
+      )
+      return attn_value, attn_probs
+    else:
+      attn_value = self.attention(key_layer, query_layer, value_layer, attention_mask)
+      return attn_value

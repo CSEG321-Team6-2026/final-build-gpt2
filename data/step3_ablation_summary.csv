@@ -1,0 +1,9 @@
+Dataset,Condition,Total Flipped,Neutral Recovery Rate (%),Control Recovery Rate (%)
+CFIMDB,general_pos,114,99.12280701754386,100.0
+CFIMDB,general_neg,140,99.28571428571429,100.0
+CFIMDB,authority_pos,114,99.12280701754386,100.0
+CFIMDB,authority_neg,139,99.28057553956835,100.0
+IMDB,general_pos,107,100.0,100.0
+IMDB,general_neg,106,99.05660377358491,100.0
+IMDB,authority_pos,110,100.0,100.0
+IMDB,authority_neg,108,99.07407407407408,100.0
