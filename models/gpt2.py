@@ -60,41 +60,63 @@ class GPT2Model(GPTPreTrainedModel):
     return hidden_states
 
 
-  def encode(self, hidden_states, attention_mask):
+  def encode(self, hidden_states, attention_mask, return_attn_probs=False):
     """
     hidden_states: the output from the embedding layer [batch_size, seq_len, hidden_size]
     attention_mask: [batch_size, seq_len]
+
+    If return_attn_probs=True, additionally returns a list of attention probabilities,
+    one tensor per layer with shape [bs, num_heads, seq_len, seq_len].
     """
     # Get the extended attention mask for self-attention.
-    # Returns extended_attention_mask of size [batch_size, 1, 1, seq_len].
-    # Distinguishes between non-padding tokens (with a value of 0) and padding tokens
-    # (with a value of a large negative number).
     extended_attention_mask: torch.Tensor = get_extended_attention_mask(attention_mask, self.dtype)
+
+    all_attn_probs = [] if return_attn_probs else None
 
     # Pass the hidden states through the encoder layers.
     for i, layer_module in enumerate(self.gpt_layers):
-      # Feed the encoding from the last bert_layer to the next.
-      hidden_states = layer_module(hidden_states, extended_attention_mask)
+      if return_attn_probs:
+        hidden_states, attn_probs = layer_module(
+            hidden_states, extended_attention_mask, return_attn_probs=True
+        )
+        all_attn_probs.append(attn_probs)
+      else:
+        hidden_states = layer_module(hidden_states, extended_attention_mask)
 
+    if return_attn_probs:
+      return hidden_states, all_attn_probs
     return hidden_states
 
-  def forward(self, input_ids, attention_mask):
+  def forward(self, input_ids, attention_mask, return_attn_probs=False):
     """
     input_ids: [batch_size, seq_len], seq_len is the max length of the batch
     attention_mask: same size as input_ids, 1 represents non-padding tokens, 0 represents padding tokens
+
+    If return_attn_probs=True, the output dict also contains 'attn_probs' —
+    a list of L tensors (one per layer), each [bs, num_heads, seq_len, seq_len].
     """
     # Get the embedding for each input token.
     embedding_output = self.embed(input_ids=input_ids)
 
     # Feed to a transformer (a stack of GPTLayers).
-    sequence_output = self.encode(embedding_output, attention_mask=attention_mask)
+    if return_attn_probs:
+      sequence_output, all_attn_probs = self.encode(
+          embedding_output, attention_mask=attention_mask, return_attn_probs=True
+      )
+    else:
+      sequence_output = self.encode(embedding_output, attention_mask=attention_mask)
+      all_attn_probs = None
+
     sequence_output = self.final_layer_norm(sequence_output)
 
     # Get the hidden state of the final token.
     last_non_pad_idx = attention_mask.sum(dim=1) - 1  # Subtract 1 to get last index
     last_token = sequence_output[torch.arange(sequence_output.shape[0]), last_non_pad_idx]
 
-    return {'last_hidden_state': sequence_output, 'last_token': last_token}
+    output = {'last_hidden_state': sequence_output, 'last_token': last_token}
+    if return_attn_probs:
+      output['attn_probs'] = all_attn_probs
+    return output
 
   def hidden_state_to_token(self, hidden_state):
     """

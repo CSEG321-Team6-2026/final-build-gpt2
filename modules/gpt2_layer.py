@@ -31,21 +31,21 @@ class GPT2Layer(nn.Module):
     return input + dropout(dense_layer(output))
 
 
-  def forward(self, hidden_states, attention_mask):
+  def forward(self, hidden_states, attention_mask, return_attn_probs=False):
     """
     GPT-2 transformer block (pre-LayerNorm variant).
 
-    The order is:
-      1) attn_in  = LayerNorm(hidden_states)
-      2) attn_out = SelfAttention(attn_in)
-      3) hidden_states = hidden_states + Dropout(Linear(attn_out))   (residual #1)
-      4) mlp_in   = LayerNorm(hidden_states)
-      5) mlp_out  = out_dense(GELU(interm_dense(mlp_in)))
-      6) hidden_states = hidden_states + Dropout(mlp_out)            (residual #2)
+    If return_attn_probs=True, additionally returns this layer's attention
+    probabilities of shape [bs, num_heads, seq_len, seq_len].
     """
     # --- Self-attention sub-layer (pre-norm + residual) ---
     normed = self.attention_layer_norm(hidden_states)
-    attn_output = self.self_attention(normed, attention_mask)
+    if return_attn_probs:
+      attn_output, attn_probs = self.self_attention(normed, attention_mask, return_attn_probs=True)
+    else:
+      attn_output = self.self_attention(normed, attention_mask)
+      attn_probs = None
+
     hidden_states = self.add(
         hidden_states, attn_output, self.attention_dense, self.attention_dropout
     )
@@ -57,5 +57,6 @@ class GPT2Layer(nn.Module):
         hidden_states, ff_output, self.out_dense, self.out_dropout
     )
 
+    if return_attn_probs:
+      return hidden_states, attn_probs
     return hidden_states
-
