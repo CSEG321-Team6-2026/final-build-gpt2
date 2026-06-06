@@ -59,21 +59,21 @@ class ParaphraseGPT(nn.Module):
 
   def forward(self, input_ids, attention_mask):
     """
-    TODO: Predict the label of the token using the paraphrase_detection_head Linear layer.
+    Cloze-style paraphrase detection.
 
     We structure the input as:
-
       'Is "{s1}" a paraphrase of "{s2}"? Answer "yes" or "no": '
 
-    So you want to find the prediction for the next token at the end of this sentence. Optimistically, it will be the
-    token "yes" (byte pair encoding index of 8505) for examples that are paraphrases or "no" (byte pair encoding index
-     of 3919) for examples that are not paraphrases.
+    We take the last token's hidden state, project to vocab logits via weight tying,
+    then extract only the [no(3919), yes(8505)] positions → (batch, 2) logits.
+    This is consistent with datasets.py which encodes labels as tokenizer IDs.
     """
+    outputs = self.gpt(input_ids, attention_mask)
+    last_token = outputs['last_token']              # (batch_size, hidden_size)
+    vocab_logits = self.gpt.hidden_state_to_token(last_token)  # (batch_size, vocab_size)
 
-    'Takes a batch of sentences and produces embeddings for them.'
-    ### YOUR CODE HERE
-    raise NotImplementedError
-
+    logits = vocab_logits[:, [3919, 8505]]          # (batch_size, 2)
+    return logits
 
 
 def save_model(model, optimizer, args, filepath):
@@ -124,6 +124,9 @@ def train(args):
       b_ids = b_ids.to(device)
       b_mask = b_mask.to(device)
       labels = labels.to(device)
+      # datasets.py encodes labels as token IDs: yes=8505, no=3919
+      # Convert to binary: yes→1, no→0 (matches logits[:, [3919, 8505]] order)
+      labels = (labels == 8505).long()
 
       # Compute the loss, gradients, and update the model's parameters.
       optimizer.zero_grad()
