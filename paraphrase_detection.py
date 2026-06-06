@@ -59,21 +59,20 @@ class ParaphraseGPT(nn.Module):
 
   def forward(self, input_ids, attention_mask):
     """
-    Predict the label of the token using the paraphrase_detection_head Linear layer.
+    Cloze-style paraphrase detection.
 
     We structure the input as:
       'Is "{s1}" a paraphrase of "{s2}"? Answer "yes" or "no": '
 
-    So we take the hidden state of the last non-padding token and pass it through
-    the classification head to get logits over [no(0), yes(1)].
+    We take the last token's hidden state, project to vocab logits via weight tying,
+    then extract only the [no(3919), yes(8505)] positions → (batch, 2) logits.
+    This is consistent with datasets.py which encodes labels as tokenizer IDs.
     """
-    # gpt.forward returns {'last_hidden_state': ..., 'last_token': ...}
-    # 'last_token': [batch_size, hidden_size] — hidden state of the last non-pad token
     outputs = self.gpt(input_ids, attention_mask)
-    last_token = outputs['last_token']  # (batch_size, hidden_size)
+    last_token = outputs['last_token']              # (batch_size, hidden_size)
+    vocab_logits = self.gpt.hidden_state_to_token(last_token)  # (batch_size, vocab_size)
 
-    # Project to 2-class logits: [no, yes]
-    logits = self.paraphrase_detection_head(last_token)  # (batch_size, 2)
+    logits = vocab_logits[:, [3919, 8505]]          # (batch_size, 2)
     return logits
 
 
@@ -125,6 +124,9 @@ def train(args):
       b_ids = b_ids.to(device)
       b_mask = b_mask.to(device)
       labels = labels.to(device)
+      # datasets.py encodes labels as token IDs: yes=8505, no=3919
+      # Convert to binary: yes→1, no→0 (matches logits[:, [3919, 8505]] order)
+      labels = (labels == 8505).long()
 
       # Compute the loss, gradients, and update the model's parameters.
       optimizer.zero_grad()
