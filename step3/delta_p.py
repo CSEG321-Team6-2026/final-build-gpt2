@@ -35,6 +35,9 @@ pos_wide['delta_p_authority'] = pos_wide['authority_neg'] - pos_wide['neutral']
 neg_wide['delta_p_general']   = neg_wide['general_pos']   - neg_wide['neutral']
 neg_wide['delta_p_authority'] = neg_wide['authority_pos'] - neg_wide['neutral']
 
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+
 print("=== Positive 그룹 Δp 요약 ===")
 print(pos_wide.groupby('dataset')[['delta_p_general', 'delta_p_authority']].describe().round(4))
 print("\n=== Negative 그룹 Δp 요약 ===")
