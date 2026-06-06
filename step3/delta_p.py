@@ -44,6 +44,7 @@ print("\n=== Negative 그룹 Δp 요약 ===")
 print(neg_wide.groupby('dataset')[['delta_p_general', 'delta_p_authority']].describe().round(4))
 
 # ── 4. 바이올린 플롯 시각화 ──────────────────────────────────────────────────
+# 행 = 데이터셋 (CFIMDB, IMDB), 열 = 그룹 (Positive, Negative)
 
 fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle("Δp Distribution by Condition and Dataset", fontsize=14)
@@ -54,8 +55,8 @@ groups = [
     (neg_wide, 'Negative (true_label=0)', 'general_pos', 'authority_pos'),
 ]
 
-for col_idx, dataset in enumerate(datasets):
-    for row_idx, (wide_df, title, general_label, authority_label) in enumerate(groups):
+for row_idx, dataset in enumerate(datasets):
+    for col_idx, (wide_df, title, general_label, authority_label) in enumerate(groups):
         ax = axes[row_idx][col_idx]
         subset = wide_df[wide_df['dataset'] == dataset]
 
@@ -68,14 +69,12 @@ for col_idx, dataset in enumerate(datasets):
                        hue='Condition', palette='Set2', inner=None, legend=False)
         ax.axhline(0, color='red', linestyle='--', linewidth=0.8)
 
-        # 중앙값(흰 점)과 평균(검은 다이아몬드) 표시
         for i, (col, label) in enumerate([('delta_p_general', general_label),
                                            ('delta_p_authority', authority_label)]):
             vals = subset[col].values
             ax.scatter(i, np.median(vals), color='white', zorder=3, s=40)
             ax.scatter(i, np.mean(vals),   color='black', zorder=3, s=40, marker='D')
 
-        # 범례 (한 번만)
         from matplotlib.lines import Line2D
         legend_elements = [
             Line2D([0], [0], marker='o', color='w', markerfacecolor='white',
