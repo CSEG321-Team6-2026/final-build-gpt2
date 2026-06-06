@@ -59,21 +59,22 @@ class ParaphraseGPT(nn.Module):
 
   def forward(self, input_ids, attention_mask):
     """
-    TODO: Predict the label of the token using the paraphrase_detection_head Linear layer.
+    Predict the label of the token using the paraphrase_detection_head Linear layer.
 
     We structure the input as:
-
       'Is "{s1}" a paraphrase of "{s2}"? Answer "yes" or "no": '
 
-    So you want to find the prediction for the next token at the end of this sentence. Optimistically, it will be the
-    token "yes" (byte pair encoding index of 8505) for examples that are paraphrases or "no" (byte pair encoding index
-     of 3919) for examples that are not paraphrases.
+    So we take the hidden state of the last non-padding token and pass it through
+    the classification head to get logits over [no(0), yes(1)].
     """
+    # gpt.forward returns {'last_hidden_state': ..., 'last_token': ...}
+    # 'last_token': [batch_size, hidden_size] — hidden state of the last non-pad token
+    outputs = self.gpt(input_ids, attention_mask)
+    last_token = outputs['last_token']  # (batch_size, hidden_size)
 
-    'Takes a batch of sentences and produces embeddings for them.'
-    ### YOUR CODE HERE
-    raise NotImplementedError
-
+    # Project to 2-class logits: [no, yes]
+    logits = self.paraphrase_detection_head(last_token)  # (batch_size, 2)
+    return logits
 
 
 def save_model(model, optimizer, args, filepath):
